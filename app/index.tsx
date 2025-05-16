@@ -3,6 +3,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import HomeScreen from "./HomeScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import GameScreen from "./GameScreen";
+import camera from "./camera";
 
 const Stack = createNativeStackNavigator();
 

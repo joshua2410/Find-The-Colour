@@ -1,9 +1,12 @@
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { useState, useRef } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 
 export default function GameScreen() {
   const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const [uri, setUri] = useState<string | null>(null);
 
   if (!permission) {
     return <View />;
@@ -20,11 +23,48 @@ export default function GameScreen() {
     );
   }
 
+  const TakePicture = async () => {
+    const photo = await cameraRef.current?.takePictureAsync();
+    setUri(photo?.uri);
+  };
+
+  const renderPicture = () => {
+    return (
+      <View>
+        <Image
+          source={{ uri }}
+          contentFit="contain"
+          style={{ width: 300, aspectRatio: 1 }}
+        />
+        <Button onPress={() => setUri(null)} title="Take another picture" />
+      </View>
+    );
+  };
+
+  const renderCamera = () => {
+    return (
+      <View style={styles.container}>
+        <CameraView
+          style={styles.camera}
+          facing="back"
+          autofocus="on"
+          ref={cameraRef}
+        >
+          <View style={styles.buttonContainer}>
+            <Button
+              onPress={TakePicture}
+              style={styles.button}
+              title="takePicture"
+            ></Button>
+          </View>
+        </CameraView>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing="back" autofocus="on">
-        <View style={styles.buttonContainer}></View>
-      </CameraView>
+      {uri ? renderPicture() : renderCamera()}
     </View>
   );
 }
