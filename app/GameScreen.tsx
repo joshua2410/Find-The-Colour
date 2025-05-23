@@ -1,5 +1,5 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { WebView } from "react-native-webview";
@@ -8,6 +8,13 @@ import { Dimensions } from "react-native";
 export default function GameScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const [result, setResult] = useState<number | undefined>();
+  const [game, setGame] = useState<number | undefined>();
+  const [targetRgb, setTargetRgb] = useState<{
+    r: number;
+    g: number;
+    b: number;
+  } | null>(null);
   const [photoData, setPhotoData] = useState<{
     uri: string;
     base64: string;
@@ -17,6 +24,34 @@ export default function GameScreen() {
   const [rgb, setRgb] = useState<{ r: number; g: number; b: number } | null>(
     null
   );
+
+  useEffect(() => {
+    let r = Math.floor(Math.random() * 256);
+    let g = Math.floor(Math.random() * 256);
+    let b = Math.floor(Math.random() * 256);
+    setGame(1);
+    setTargetRgb({ r, g, b });
+  }, [game]);
+
+  useEffect(() => {
+    if (rgb && targetRgb) {
+      const result = [];
+      result.push(
+        Math.floor(100 - (Math.abs(rgb.r - targetRgb.r) / 255) * 100)
+      );
+      result.push(
+        Math.floor(100 - (Math.abs(rgb.g - targetRgb.g) / 255) * 100)
+      );
+      result.push(
+        Math.floor(100 - (Math.abs(rgb.b - targetRgb.b) / 255) * 100)
+      );
+      const resultAverage = result.reduce(
+        (accumulator, currentValue) => accumulator + currentValue
+      );
+      const trueResult = Math.floor(resultAverage / 3);
+      setResult(trueResult);
+    }
+  }, [rgb]);
 
   if (!permission) {
     return <View />;
@@ -47,18 +82,10 @@ export default function GameScreen() {
       });
     }
   };
-
-  const renderPicture = () => {
-    return (
-      <View>
-        <Image
-          source={{ uri }}
-          contentFit="contain"
-          style={{ width: 300, aspectRatio: 1 }}
-        />
-        <Button onPress={() => setUri(null)} title="Take another picture" />
-      </View>
-    );
+  const resetGame = () => {
+    setPhotoData(null);
+    setGame(game + 1);
+    setRgb(null);
   };
 
   const renderWebView = () => {
@@ -130,17 +157,13 @@ export default function GameScreen() {
               } else {
                 const { r, g, b } = result;
                 setRgb({ r, g, b });
-                alert(`Center Pixel RGB:\nR=${r}, G=${g}, B=${b}`);
               }
             } catch (e) {
               alert("Failed to parse message from WebView");
             }
           }}
         />
-        <Button
-          title="Take Another Picture"
-          onPress={() => setPhotoData(null)}
-        />
+        <Button title="Take Another Picture" onPress={() => resetGame()} />
       </View>
     );
   };
@@ -154,12 +177,8 @@ export default function GameScreen() {
           autofocus="on"
           ref={cameraRef}
         >
-          <View style={styles.buttonContainer}>
-            <Button
-              onPress={TakePicture}
-              style={styles.button}
-              title="takePicture"
-            ></Button>
+          <View style={styles.bottomButtonContainer}>
+            <Button onPress={TakePicture} title="takePicture"></Button>
           </View>
         </CameraView>
       </View>
@@ -169,6 +188,37 @@ export default function GameScreen() {
   return (
     <View style={styles.container}>
       {photoData ? renderWebView() : renderCamera()}
+      {typeof result === "number" && (
+        <Text style={{ textAlign: "center", fontSize: 22, marginVertical: 10 }}>
+          Match score: {result}%
+        </Text>
+      )}
+      {targetRgb && (
+        <View
+          style={{
+            width: 100,
+            height: 100,
+            backgroundColor: `rgb(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b})`,
+            marginTop: 10,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "#000",
+          }}
+        ></View>
+      )}
+      {rgb && (
+        <View
+          style={{
+            width: 100,
+            height: 100,
+            backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
+            marginTop: 10,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "#000",
+          }}
+        ></View>
+      )}
     </View>
   );
 }
@@ -176,7 +226,6 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
   },
   message: {
     textAlign: "center",
@@ -184,6 +233,14 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+  },
+  bottomButtonContainer: {
+    bottom: 40,
+    position: "absolute",
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 12,
+    borderRadius: 12,
   },
   buttonContainer: {
     flex: 1,
