@@ -1,15 +1,16 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState, useRef, useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { Image } from "expo-image";
 import { WebView } from "react-native-webview";
-import { Dimensions } from "react-native";
+import { Dimensions, TextInput } from "react-native";
+import axios from "axios";
 
 export default function GameScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [result, setResult] = useState<number | undefined>();
   const [game, setGame] = useState<number | undefined>();
+  const [playerName, setPlayerName] = useState("");
   const [targetRgb, setTargetRgb] = useState<{
     r: number;
     g: number;
@@ -86,6 +87,7 @@ export default function GameScreen() {
     setPhotoData(null);
     setGame(game + 1);
     setRgb(null);
+    setResult(undefined);
   };
 
   const renderWebView = () => {
@@ -168,6 +170,36 @@ export default function GameScreen() {
     );
   };
 
+  const submitScore = async () => {
+    try {
+      if (!playerName || result === undefined) {
+        alert("Please enter a name and ensure a score is available.");
+        return;
+      }
+
+      const response = await axios.post(
+        "https://colourleaderboard-lk72.onrender.com/api/leaderboard",
+        {
+          rone: targetRgb?.r,
+          gone: targetRgb?.g,
+          bone: targetRgb?.b,
+          rtwo: targetRgb?.r,
+          gtwo: targetRgb?.g,
+          btwo: targetRgb?.b,
+          player: playerName,
+          score: result,
+        }
+      );
+
+      alert("Score submitted!");
+      console.log("API response:", response.data);
+      setPlayerName(""); // optional: clear input
+    } catch (error) {
+      console.error("Failed to submit score", error);
+      alert("Error submitting score");
+    }
+  };
+
   const renderCamera = () => {
     return (
       <View style={styles.container}>
@@ -192,6 +224,18 @@ export default function GameScreen() {
         <Text style={{ textAlign: "center", fontSize: 22, marginVertical: 10 }}>
           Match score: {result}%
         </Text>
+      )}
+      {result !== undefined && (
+        <View style={styles.inputContainer}>
+          <Text>Enter your name:</Text>
+          <TextInput
+            value={playerName}
+            onChangeText={setPlayerName}
+            placeholder="Your name"
+            style={styles.input}
+          />
+          <Button title="Submit Score" onPress={submitScore} />
+        </View>
       )}
       {targetRgb && (
         <View
@@ -257,5 +301,18 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "white",
+  },
+  inputContainer: {
+    marginTop: 20,
+    padding: 10,
+    alignItems: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginVertical: 10,
+    width: "80%",
+    borderRadius: 5,
   },
 });
