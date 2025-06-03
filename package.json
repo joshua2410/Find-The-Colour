@@ -10,7 +10,18 @@
     "web": "expo start --web",
     "lint": "expo lint"
   },
+  "expo": {
+    "plugins": [
+      "expo-font",
+      {
+        "fonts": [
+          "node_modules/@expo-google-fonts/inter/Inter_900Black.ttf"
+        ]
+      }
+    ]
+  },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.1",
     "@expo/vector-icons": "^14.1.0",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",

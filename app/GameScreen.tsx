@@ -1,11 +1,12 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState, useRef, useEffect } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { WebView } from "react-native-webview";
 import { Dimensions, TextInput } from "react-native";
 import axios from "axios";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function GameScreen() {
+export default function GameScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [result, setResult] = useState<number | undefined>();
@@ -183,9 +184,9 @@ export default function GameScreen() {
           rone: targetRgb?.r,
           gone: targetRgb?.g,
           bone: targetRgb?.b,
-          rtwo: targetRgb?.r,
-          gtwo: targetRgb?.g,
-          btwo: targetRgb?.b,
+          rtwo: rgb?.r,
+          gtwo: rgb?.g,
+          btwo: rgb?.b,
           player: playerName,
           score: result,
         }
@@ -209,6 +210,12 @@ export default function GameScreen() {
           autofocus="on"
           ref={cameraRef}
         >
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <Ionicons name="close" size={30} color="white" />
+          </TouchableOpacity>
           <View style={styles.bottomButtonContainer}>
             <Button onPress={TakePicture} title="takePicture"></Button>
           </View>
@@ -314,5 +321,14 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: "80%",
     borderRadius: 5,
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 8,
+    borderRadius: 20,
   },
 });
