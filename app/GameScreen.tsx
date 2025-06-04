@@ -4,7 +4,7 @@ import { Button, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { WebView } from "react-native-webview";
 import { Dimensions, TextInput } from "react-native";
 import axios from "axios";
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 
 export default function GameScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -193,7 +193,7 @@ export default function GameScreen({ navigation }) {
 
       alert("Score submitted!");
       console.log("API response:", response.data);
-      setPlayerName(""); // optional: clear input
+      setPlayerName("");
     } catch (error) {
       console.error("Failed to submit score", error);
       alert("Error submitting score");
@@ -217,7 +217,9 @@ export default function GameScreen({ navigation }) {
           </TouchableOpacity>
           <View style={styles.centerCircle} />
           <View style={styles.bottomButtonContainer}>
-            <Button onPress={TakePicture} title="takePicture"></Button>
+            <TouchableOpacity onPress={TakePicture}>
+              <Entypo name="camera" size={24} color="black" />
+            </TouchableOpacity>
           </View>
           {targetRgb && (
             <View
@@ -243,7 +245,6 @@ export default function GameScreen({ navigation }) {
           renderCamera()
         )
       ) : (
-        // Full-screen result screen
         <View style={styles.resultsContainer}>
           <Text style={styles.resultText}>Match score: {result}%</Text>
           <Text style={styles.resultLabel}>Enter your name:</Text>
@@ -373,10 +374,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 20,
+    fontFamily: "Typo",
   },
   resultLabel: {
     marginTop: 20,
     fontSize: 16,
+    fontFamily: "Typo",
   },
   colorBox: {
     width: 100,
