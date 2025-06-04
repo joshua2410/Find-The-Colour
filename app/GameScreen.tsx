@@ -166,7 +166,6 @@ export default function GameScreen({ navigation }) {
             }
           }}
         />
-        <Button title="Take Another Picture" onPress={() => resetGame()} />
       </View>
     );
   };
@@ -216,9 +215,20 @@ export default function GameScreen({ navigation }) {
           >
             <Ionicons name="close" size={30} color="white" />
           </TouchableOpacity>
+          <View style={styles.centerCircle} />
           <View style={styles.bottomButtonContainer}>
             <Button onPress={TakePicture} title="takePicture"></Button>
           </View>
+          {targetRgb && (
+            <View
+              style={[
+                styles.targetColour,
+                {
+                  backgroundColor: `rgb(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b})`,
+                },
+              ]}
+            />
+          )}
         </CameraView>
       </View>
     );
@@ -226,49 +236,47 @@ export default function GameScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {photoData ? renderWebView() : renderCamera()}
-      {typeof result === "number" && (
-        <Text style={{ textAlign: "center", fontSize: 22, marginVertical: 10 }}>
-          Match score: {result}%
-        </Text>
-      )}
-      {result !== undefined && (
-        <View style={styles.inputContainer}>
-          <Text>Enter your name:</Text>
+      {result === undefined ? (
+        photoData ? (
+          renderWebView()
+        ) : (
+          renderCamera()
+        )
+      ) : (
+        // Full-screen result screen
+        <View style={styles.resultsContainer}>
+          <Text style={styles.resultText}>Match score: {result}%</Text>
+          <Text style={styles.resultLabel}>Enter your name:</Text>
           <TextInput
             value={playerName}
             onChangeText={setPlayerName}
             placeholder="Your name"
+            autoCapitalize="characters"
             style={styles.input}
           />
           <Button title="Submit Score" onPress={submitScore} />
+          <Button title="Play Again" onPress={resetGame} />
+
+          <Text style={styles.resultLabel}>Target Colour:</Text>
+          <View
+            style={[
+              styles.colorBox,
+              {
+                backgroundColor: `rgb(${targetRgb?.r}, ${targetRgb?.g}, ${targetRgb?.b})`,
+              },
+            ]}
+          />
+
+          <Text style={styles.resultLabel}>Your Guess:</Text>
+          <View
+            style={[
+              styles.colorBox,
+              {
+                backgroundColor: `rgb(${rgb?.r}, ${rgb?.g}, ${rgb?.b})`,
+              },
+            ]}
+          />
         </View>
-      )}
-      {targetRgb && (
-        <View
-          style={{
-            width: 100,
-            height: 100,
-            backgroundColor: `rgb(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b})`,
-            marginTop: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: "#000",
-          }}
-        ></View>
-      )}
-      {rgb && (
-        <View
-          style={{
-            width: 100,
-            height: 100,
-            backgroundColor: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
-            marginTop: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: "#000",
-          }}
-        ></View>
       )}
     </View>
   );
@@ -330,5 +338,52 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     padding: 8,
     borderRadius: 20,
+  },
+  centerCircle: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: 20,
+    height: 20,
+    marginLeft: -10,
+    marginTop: -10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "red",
+    zIndex: 10,
+  },
+  targetColour: {
+    position: "absolute",
+    bottom: 30,
+    left: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#000",
+    zIndex: 10,
+  },
+  resultsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  resultText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  resultLabel: {
+    marginTop: 20,
+    fontSize: 16,
+  },
+  colorBox: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#000",
+    marginTop: 10,
   },
 });
