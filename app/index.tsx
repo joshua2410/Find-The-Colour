@@ -4,6 +4,7 @@ import HomeScreen from "./HomeScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import GameScreen from "./GameScreen";
 import LeaderboardScreen from "./LeaderboardScreen";
+import HowToPlay from "./HowToPlay";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,11 @@ export default function App() {
         <Stack.Screen
           name="Leaderboard"
           component={LeaderboardScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="HowToPlay"
+          component={HowToPlay}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

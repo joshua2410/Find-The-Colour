@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Platform } from "react-native";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
@@ -37,6 +36,9 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Leaderboard")}>
             <Text style={styles.button}>Leaderboard</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("HowToPlay")}>
+            <Text style={styles.button}>How to play</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

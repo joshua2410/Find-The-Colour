@@ -102,7 +102,6 @@ export default function LeaderboardScreen({ navigation }) {
         style={styles.backButton}
         onPress={() => navigation.navigate("Home")}
       >
-        {" "}
         <Ionicons name="chevron-back" size={24} color="black" />
         <Text style={styles.labelText}>Back</Text>
       </TouchableOpacity>
@@ -113,7 +112,7 @@ export default function LeaderboardScreen({ navigation }) {
           data={scores}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          ListHeaderComponent={LeaderboardHeader}
+          ListHeaderComponent={<LeaderboardHeader />}
         />
       )}
     </View>

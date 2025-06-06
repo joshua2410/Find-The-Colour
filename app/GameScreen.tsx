@@ -1,13 +1,22 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState, useRef, useEffect } from "react";
-import { Button, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  Button,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import { WebView } from "react-native-webview";
-import { Dimensions, TextInput } from "react-native";
+import { Dimensions, TextInput, Animated } from "react-native";
 import axios from "axios";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 
 export default function GameScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
+  const [submitted, setSubmitted] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const [result, setResult] = useState<number | undefined>();
   const [game, setGame] = useState<number | undefined>();
@@ -26,6 +35,8 @@ export default function GameScreen({ navigation }) {
   const [rgb, setRgb] = useState<{ r: number; g: number; b: number } | null>(
     null
   );
+
+  const vanishAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     let r = Math.floor(Math.random() * 256);
@@ -89,6 +100,7 @@ export default function GameScreen({ navigation }) {
     setGame(game + 1);
     setRgb(null);
     setResult(undefined);
+    setSubmitted(false);
   };
 
   const renderWebView = () => {
@@ -190,10 +202,14 @@ export default function GameScreen({ navigation }) {
           score: result,
         }
       );
-
-      alert("Score submitted!");
-      console.log("API response:", response.data);
-      setPlayerName("");
+      Animated.timing(vanishAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => {
+        setSubmitted(true);
+        setPlayerName("");
+      });
     } catch (error) {
       console.error("Failed to submit score", error);
       alert("Error submitting score");
@@ -215,10 +231,17 @@ export default function GameScreen({ navigation }) {
           >
             <Ionicons name="close" size={30} color="white" />
           </TouchableOpacity>
-          <View style={styles.centerCircle} />
+          <View
+            style={[
+              styles.centerCircle,
+              {
+                borderColor: `rgb(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b})`,
+              },
+            ]}
+          />
           <View style={styles.bottomButtonContainer}>
             <TouchableOpacity onPress={TakePicture}>
-              <Entypo name="camera" size={24} color="black" />
+              <Entypo name="camera" size={40} color="black" />
             </TouchableOpacity>
           </View>
           {targetRgb && (
@@ -237,49 +260,65 @@ export default function GameScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {result === undefined ? (
-        photoData ? (
-          renderWebView()
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        {result === undefined ? (
+          photoData ? (
+            renderWebView()
+          ) : (
+            renderCamera()
+          )
         ) : (
-          renderCamera()
-        )
-      ) : (
-        <View style={styles.resultsContainer}>
-          <Text style={styles.resultText}>Match score: {result}%</Text>
-          <Text style={styles.resultLabel}>Enter your name:</Text>
-          <TextInput
-            value={playerName}
-            onChangeText={setPlayerName}
-            placeholder="Your name"
-            autoCapitalize="characters"
-            style={styles.input}
-          />
-          <Button title="Submit Score" onPress={submitScore} />
-          <Button title="Play Again" onPress={resetGame} />
+          <View style={styles.resultsContainer}>
+            <Text style={styles.resultText}>Match score: {result}%</Text>
+            {!submitted && (
+              <Animated.View style={styles.vanishContainer}>
+                <Text style={styles.resultLabel}>Enter your name:</Text>
+                <TextInput
+                  value={playerName}
+                  onChangeText={setPlayerName}
+                  placeholder="Your name"
+                  autoCapitalize="characters"
+                  style={styles.input}
+                />
+                <TouchableOpacity onPress={submitScore}>
+                  <Text style={styles.resultText}>Submit Score</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
 
-          <Text style={styles.resultLabel}>Target Colour:</Text>
-          <View
-            style={[
-              styles.colorBox,
-              {
-                backgroundColor: `rgb(${targetRgb?.r}, ${targetRgb?.g}, ${targetRgb?.b})`,
-              },
-            ]}
-          />
+            <TouchableOpacity onPress={resetGame}>
+              <Text style={styles.resultText}>Play Again</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Leaderboard")}
+            >
+              <Text style={styles.resultText}>Leaderboard</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.resultLabel}>Your Guess:</Text>
-          <View
-            style={[
-              styles.colorBox,
-              {
-                backgroundColor: `rgb(${rgb?.r}, ${rgb?.g}, ${rgb?.b})`,
-              },
-            ]}
-          />
-        </View>
-      )}
-    </View>
+            <Text style={styles.resultLabel}>Target Colour:</Text>
+            <View
+              style={[
+                styles.colorBox,
+                {
+                  backgroundColor: `rgb(${targetRgb?.r}, ${targetRgb?.g}, ${targetRgb?.b})`,
+                },
+              ]}
+            />
+
+            <Text style={styles.resultLabel}>Your Guess:</Text>
+            <View
+              style={[
+                styles.colorBox,
+                {
+                  backgroundColor: `rgb(${rgb?.r}, ${rgb?.g}, ${rgb?.b})`,
+                },
+              ]}
+            />
+          </View>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -324,12 +363,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   input: {
+    width: "100%",
+    maxWidth: 300,
+    height: 44,
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 10,
-    marginVertical: 10,
-    width: "80%",
-    borderRadius: 5,
+    paddingHorizontal: 12,
+    marginTop: 10,
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: "#fff",
+    fontFamily: "Typo",
   },
   backButton: {
     position: "absolute",
@@ -350,7 +394,6 @@ const styles = StyleSheet.create({
     marginTop: -10,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "red",
     zIndex: 10,
   },
   targetColour: {
@@ -388,5 +431,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
     marginTop: 10,
+  },
+  vanishContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    width: "100%",
+    alignItems: "center",
   },
 });
